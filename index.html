@@ -78,6 +78,13 @@ input.t.ok{border-color:var(--ok);background:var(--okbg)}input.t.no{border-color
 .pill{font-size:14px;color:var(--mut)}
 .search{width:100%;font:inherit;font-size:16px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);margin:10px 0}
 .nb{white-space:nowrap}
+.gmg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.gmc{min-height:76px;padding:6px;border:1px solid var(--acc);border-radius:12px;background:var(--acc);color:light-dark(#fff,#0a0d18);font:inherit;font-size:22px;cursor:pointer}
+.gmc.up{background:var(--card);border-color:var(--line);color:var(--ink);font-size:14px;font-weight:600}
+.gmc.ok{background:var(--okbg);border-color:var(--ok);color:var(--ink);font-size:14px;font-weight:600}
+.gpat{font:700 22px/1.5 ui-monospace,Menlo,monospace;letter-spacing:.04em;word-break:break-word;margin:10px 0}
+.gin{display:block;width:100%;font:inherit;font-size:17px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+.brow{display:flex;gap:8px}.brow .btn{flex:1}
 @media(max-width:600px){h1{font-size:28px}h2{font-size:24px}.qq{font-size:19px}table{font-size:14px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px;border-bottom:1px solid var(--line)}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:7em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:6.5em;margin-inline-start:-7em;color:var(--mut);font-size:13px}.stack td:empty{display:none}}
 @media(prefers-reduced-motion:no-preference){.bar i{transition:width .4s}}
 </style><script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script></head><body>
@@ -92,7 +99,8 @@ const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"
 const SPK='<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 const sp=t=>t?`<button class=sp data-say="${esc(t)}" aria-label="Escuchar">${SPK}</button>`:"";
 let VO=null;
-function say(t){try{const u=new SpeechSynthesisUtterance(t);u.lang="en-US";u.rate=.9;if(!VO){const v=speechSynthesis.getVoices();VO=v.find(x=>/en[-_]US/i.test(x.lang))||v.find(x=>/^en/i.test(x.lang))||null}if(VO)u.voice=VO;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+function noVoice(m){{const o=document.getElementById('nv');if(o)o.remove()}const d=document.createElement('div');d.id='nv';d.setAttribute('role','status');d.style.cssText='position:fixed;left:12px;right:12px;bottom:12px;z-index:9;padding:12px 14px;border-radius:12px;background:var(--ink);color:var(--bg);font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,.3)';d.textContent='Tu dispositivo no tiene una voz en inglés instalada, por eso suena en español. Agregala en los ajustes de voz o de accesibilidad del sistema.';if(m)d.textContent=m;d.onclick=()=>d.remove();document.body.appendChild(d);setTimeout(()=>d.remove(),9000)}
+function say(t){try{const ss=speechSynthesis;let done=0;const go=()=>{if(done)return;done=1;const en=ss.getVoices().filter(x=>/^en([-_]|$)/i.test(x.lang));VO=en.find(x=>/en[-_]US/i.test(x.lang))||en.find(x=>/en[-_]GB/i.test(x.lang))||en[0]||null;const u=new SpeechSynthesisUtterance(t);u.lang=VO?VO.lang.replace('_','-'):'en-US';u.rate=.9;if(VO)u.voice=VO;ss.cancel();ss.speak(u);if(!window.vd){window.vd=1;noVoice('Voz: '+(VO?VO.name+' ('+VO.lang+')':'ninguna en inglés')+' · '+ss.getVoices().length+' voces en total')}else if(!VO&&ss.getVoices().length)noVoice()};if(ss.getVoices().length)go();else{ss.addEventListener('voiceschanged',go,{once:true});setTimeout(go,700)}}catch(e){}}
 
 const tb=r=>`<table class=stack><thead><tr><th>Forma</th><th>Estructura</th><th>Ejemplo</th></tr></thead><tbody>${r.map(x=>`<tr><td><b>${x[0]}</b></td><td>${x[1]}</td><td><i>${x[2]}</i></td></tr>`).join("")}</tbody></table>`;
 const E=(uso,forma,marc,ojo)=>`<h3>¿Cuándo se usa?</h3><ul>${uso.map(u=>`<li>${u}</li>`).join("")}</ul><h3>Estructura</h3>${tb(forma)}${marc?`<h3>Palabras que suelen acompañarlo</h3><p class=chips>${marc.split(",").map(m=>`<span>${m.trim()}</span>`).join("")}</p>`:""}${ojo?`<div class=ojo><b>Ojo con esto</b>${ojo}</div>`:""}`;
@@ -298,12 +306,12 @@ function TL(m){if(!m)return"";const X=x=>20+x*2.6,y=44;let s=`<svg class=tl view
  return s+"</svg>"}
 
 /* ---------- VISTAS ---------- */
-const TABS=[["tiempos","Tiempos verbales"],["vocab","Vocabulario"],["irreg","Irregulares"],["frases","Frases útiles"],["repaso","Repaso"]];
+const TABS=[["tiempos","Tiempos verbales"],["vocab","Vocabulario"],["irreg","Irregulares"],["frases","Frases útiles"],["juegos","Juegos"],["repaso","Repaso"]];
 const badge=id=>P.s[id]!=null?`<span class="badge ${P.s[id]>=80?"done":""}">${P.s[id]>=80?"✓ ":""}${P.s[id]}%</span>`:"";
 const rowT=t=>`<button class="card row" data-a=open data-v="${t.id}"><span class="tag ${t.g}"></span><span><b>${t.t}</b><small>${t.d||t.w.length+" "+(t.k=="f"?"frases":"palabras")}</small></span>${badge(t.id)}</button>`;
 function stats(){const n=ALL.filter(t=>P.s[t.id]>=80).length;$("#stats").innerHTML=`<div class=stat><b>${n}/${ALL.length}</b>temas completados</div><div class=stat><b>${P.last==day(0)||P.last==day(1)?P.streak:0}</b>días seguidos</div><div class=stat><b>${P.err.length}</b>errores para repasar</div>`;
  $("#tabs").innerHTML=TABS.map(t=>`<button class="${S.tab==t[0]&&!S.Q&&!S.view?"on":""}" data-a=tab data-v=${t[0]}>${t[1]}</button>`).join("")}
-function home(){const t=S.tab;let h="";
+function home(){const t=S.tab;let h="";if(t=="juegos")return gameHome();
  if(t=="tiempos"){h=`<div class="card zone"><b>Práctica mixta</b><p class=sub>10 preguntas al azar de todos los tiempos verbales.</p><button class=btn data-a=mixT>Empezar</button></div>`;
   for(const[g,l]of[["Bases","Bases"],["Presente","Presente"],["Pasado","Pasado"],["Futuro","Futuro"],["Más","Para pulir"]])h+=`<div class=grp>${l}</div>`+TN.filter(x=>x.g==g).map(x=>rowT({...x,k:"t"})).join("")}
  if(t=="vocab"){h=`<div class="card zone"><b>Mezcla de vocabulario</b><p class=sub>12 palabras al azar de todas las categorías, en los dos sentidos.</p><button class=btn data-a=mixV>Empezar</button></div>`;
@@ -332,12 +340,12 @@ function quiz(){const Q=S.Q;
  if(st){const right=q.t=="mc"?q.o[q.a]:q.t=="ord"?q.s:q.f.map(f=>f.a[0]).join(" · ");h+=`<div class="fb ${st.ok?"ok":"no"}"><div><b>${st.ok?"¡Correcto!":"Respuesta correcta: "+right}</b>${q.w?`<br>${q.w}`:""}</div>${sp(spoken(q))}</div>`}
  h+=`</div>`;if(st)h+=`<button class=btn data-a=next>${Q.i+1<Q.qs.length?"Siguiente":"Ver resultado"}</button>`;
  return h}
-function R(){stats();const a=$("#app");a.innerHTML=S.Q?quiz():S.view?topic(find(S.view)):home();const i=$("#f0");if(i&&!i.disabled)i.focus({preventScroll:true})}
+function R(){stats();const a=$("#app");a.innerHTML=S.G?gview():S.Q?quiz():S.view?topic(find(S.view)):home();const i=$("#f0")||$("#gi");if(i&&!i.disabled)i.focus({preventScroll:true})}
 
 /* ---------- ACCIONES ---------- */
 const go=t=>start(t.k=="t"?t.qs:t.k=="v"?genV(t.w):genF(t),t.id,t.t);
 const A={
- tab:v=>{S.tab=v;S.view=null;S.Q=null;S.conf=0;R()},
+ tab:v=>{S.tab=v;S.view=null;S.Q=null;S.G=null;S.conf=0;R()},
  open:v=>{S.view=v;R();scrollTo(0,0)},
  back:()=>{S.view=null;R()},
  go:()=>go(find(S.view)),
@@ -353,12 +361,36 @@ const A={
  exit:()=>{S.Q=null;R();scrollTo(0,0)},
  reset:()=>{if(!S.conf){S.conf=1;R();return}P={s:{},err:[],streak:0,last:""};save();S.conf=0;R()}
 };
+/* ---------- JUEGOS ---------- */
+const GX=[["give up","rendirse"],["look for","buscar"],["turn on","encender"],["turn off","apagar"],["wake up","despertarse"],["pick up","recoger"],["find out","averiguar"],["look forward to","tener ganas de"],["run out of","quedarse sin"],["get along with","llevarse bien con"],["How much is it?","¿Cuánto cuesta?"],["I'm running late","Estoy llegando tarde"],["No worries","No hay problema"],["What's up?","¿Qué onda?"],["I don't get it","No entiendo"],["Take your time","Tomate tu tiempo"],["It's up to you","Depende de vos"],["Long time no see","Cuánto tiempo sin verte"],["check in","hacer el check-in"],["boarding pass","tarjeta de embarque"],["customs","aduana"],["delayed flight","vuelo demorado"],["carry-on","equipaje de mano"],["boarding gate","puerta de embarque"],["round trip","ida y vuelta"],["book a room","reservar una habitación"]];
+const gisL=c=>/[a-z0-9]/i.test(c);
+const gsimple=()=>allWords().filter(w=>w[0].split(" ").length<=2);
+const gexp=()=>{const seen=new Set(),o=[];for(const w of [...GX,...FR.flatMap(f=>f.w).filter(w=>w[0].split(" ").length<=3)]){const k=norm(w[0]);if(!seen.has(k)){seen.add(k);o.push(w)}}return o};
+const gpick=n=>sh(sh(gsimple()).slice(0,n/2).concat(sh(gexp()).slice(0,n/2)));
+function gbump(){const t=day(0);if(P.last!=t){P.streak=P.last==day(1)?P.streak+1:1;P.last=t}save()}
+const gri=w=>{const r=[];[...w].forEach((c,i)=>{if(gisL(c)&&(i==0||w[i-1]==" "))r.push(i)});return r};
+const gpat=(w,r)=>[...w].map((c,i)=>c==" "?"/":!gisL(c)?c:r.includes(i)?c:"_").join(" ");
+function gameHome(){const n=P.last==day(0)||P.last==day(1)?P.streak:0,d=P.last==day(0);
+ return `<div class="card zone"><b>${n} ${n==1?"día":"días"} de racha</b><p class=sub>${d?"Hoy ya practicaste ✓":"Hoy todavía no practicaste. Terminá una partida para sumar el día."}</p></div><div class=grp>Elegí un juego</div><button class="card row" data-a=gMem><span class="tag Presente"></span><span><b>Memoria de parejas</b><small>Uní cada palabra o expresión con su significado</small></span></button><button class="card row" data-a=gLet><span class="tag Futuro"></span><span><b>Completar letras</b><small>Adiviná la palabra a partir de la traducción</small></span></button>`}
+function gMem(){const it=gpick(6);S.G={m:"mem",c:sh(it.flatMap((w,i)=>[{k:i,t:w[0],en:1},{k:i,t:w[1]}])),o:[],d:[],mv:0,lk:false};R();scrollTo(0,0)}
+function gflip(v){const G=S.G,i=+v;if(G.lk||G.o.includes(i)||G.d.includes(i))return;G.o.push(i);if(G.c[i].en)say(G.c[i].t);if(G.o.length==2){G.mv++;const a=G.o[0],b=G.o[1];if(G.c[a].k==G.c[b].k){G.d.push(a,b);G.o=[];if(G.d.length==G.c.length)gbump()}else{G.lk=true;R();setTimeout(()=>{if(S.G!==G)return;G.o=[];G.lk=false;R()},900);return}}R()}
+function gLet(){const r=gpick(6);S.G={m:"let",r,i:0,s:0,v:"",st:null,h:0,msg:"",rev:gri(r[0][0])};R();scrollTo(0,0)}
+function ghint(){const G=S.G,i=$("#gi");if(i)G.v=i.value;const w=G.r[G.i][0],x=[...w].findIndex((c,j)=>gisL(c)&&!G.rev.includes(j));if(x>=0){G.rev.push(x);G.h++}R()}
+function gchk(){const G=S.G;if(G.st)return;const i=$("#gi");G.v=i?i.value:G.v;if(!G.v.trim())return;const w=G.r[G.i][0];if(norm(G.v)==norm(w)){G.st="ok";say(w);G.s+=Math.max(1,3-G.h)}else G.msg="Todavía no. Probá de nuevo o pedí una pista.";R()}
+function ggive(){const G=S.G;G.st="gave";say(G.r[G.i][0]);R()}
+function gnext(){const G=S.G;G.i++;if(G.i>=G.r.length){G.end=true;gbump()}else{G.v="";G.st=null;G.h=0;G.msg="";G.rev=gri(G.r[G.i][0])}R();scrollTo(0,0)}
+function gview(){const G=S.G,back=`<button class=back data-a=gexit>← Juegos</button>`;
+ if(G.m=="mem"){const fin=G.d.length==G.c.length;
+  return back+`<h2>Memoria de parejas</h2><p class=sub>Intentos: ${G.mv}</p>`+(fin?`<div class="card zone"><div class=big>${G.mv}</div><p class=sub style="text-align:center">intentos para completarlo. Racha: ${P.streak} ${P.streak==1?"día":"días"}.</p><button class=btn data-a=gMem>Jugar de nuevo</button></div>`:"")+`<div class=gmg>${G.c.map((c,i)=>{const dn=G.d.includes(i),up=dn||G.o.includes(i);return `<button class="gmc ${dn?"ok":up?"up":""}" data-a=gflip data-v=${i} ${up?"":'aria-label="Carta boca abajo"'}>${up?c.t:"?"}</button>`}).join("")}</div>`}
+ if(G.end)return back+`<div class="card zone"><h2>Resultado</h2><div class=big>${G.s}/${G.r.length*3}</div><p class=sub style="text-align:center">puntos. Racha: ${P.streak} ${P.streak==1?"día":"días"}.</p></div><button class=btn data-a=gLet>Jugar de nuevo</button>`;
+ const w=G.r[G.i],st=G.st;
+ return back+`<p class=pill>Palabra ${G.i+1} de ${G.r.length} · Puntos: ${G.s}</p><div class=bar><i style="width:${G.i/G.r.length*100}%"></i></div><div class=card><p class=pill>¿Cómo se dice en inglés?</p><h2>${w[1]}</h2>`+(st?`<div class=gpat>${w[0]}</div><div class="fb ${st=="ok"?"ok":"no"}"><div><b>${st=="ok"?"¡Correcto! +"+Math.max(1,3-G.h)+" puntos":"La respuesta era esta."}</b></div>${sp(w[0])}</div>`:`<div class=gpat>${gpat(w[0],G.rev)}</div><input class=gin id=gi value="${esc(G.v)}" autocomplete=off autocapitalize=off autocorrect=off spellcheck=false aria-label="Tu respuesta en inglés" placeholder="Escribí la respuesta en inglés">`+(G.msg?`<div class=fb><div>${G.msg}</div></div>`:"")+`<button class=btn data-a=gchk>Comprobar</button><div class=brow><button class="btn alt" data-a=ghint>Pista</button><button class="btn alt" data-a=ggive>Me rindo</button></div>`)+`</div>`+(st?`<button class=btn data-a=gnext>${G.i+1<G.r.length?"Siguiente":"Ver resultado"}</button>`:"")}
+Object.assign(A,{gMem,gLet,gflip,ghint,gchk,ggive,gnext,gexit:()=>{S.G=null;R();scrollTo(0,0)}});
+document.addEventListener("keydown",e=>{const G=S.G;if(e.key!="Enter"||!G||G.m!="let"||G.end)return;if(G.st){e.preventDefault();gnext()}else if(e.target.id=="gi"){e.preventDefault();gchk()}});
 document.addEventListener("click",e=>{const s=e.target.closest("[data-say]");if(s){say(s.dataset.say);return}const b=e.target.closest("[data-a]");if(b&&!b.disabled&&A[b.dataset.a])A[b.dataset.a](b.dataset.v)});
 document.addEventListener("input",e=>{if(e.target.id=="q")$("#irt").innerHTML=irRows(e.target.value)});
 document.addEventListener("keydown",e=>{if(e.key!="Enter"||!S.Q||S.Q.end)return;if(S.Q.st){e.preventDefault();next()}else if(e.target.classList&&e.target.classList.contains("t")){e.preventDefault();check()}});
 try{speechSynthesis.onvoiceschanged=()=>{VO=null}}catch(e){}
 R();
 }
-</script>
-<script>if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))</script>
-</body></html>
+</script></body></html>
